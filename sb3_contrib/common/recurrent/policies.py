@@ -79,6 +79,10 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         squash_output: bool = False,
         features_extractor_class: type[BaseFeaturesExtractor] = FlattenExtractor,
         features_extractor_kwargs: dict[str, Any] | None = None,
+        critic_features_extractor_class: type[BaseFeaturesExtractor] = FlattenExtractor,
+        critic_features_extractor_kwargs: dict[str, Any] | None = None,
+        actor_features_extractor_class: type[BaseFeaturesExtractor] = FlattenExtractor,
+        actor_features_extractor_kwargs: dict[str, Any] | None = None,
         share_features_extractor: bool = True,
         normalize_images: bool = True,
         optimizer_class: type[th.optim.Optimizer] = th.optim.Adam,
@@ -104,6 +108,10 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
             squash_output,
             features_extractor_class,
             features_extractor_kwargs,
+            critic_features_extractor_class,
+            critic_features_extractor_kwargs,
+            actor_features_extractor_class,
+            actor_features_extractor_kwargs,
             share_features_extractor,
             normalize_images,
             optimizer_class,
@@ -124,13 +132,9 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         self.lstm_hidden_state_shape = (n_lstm_layers, 1, lstm_hidden_size)
         self.critic = None
         self.lstm_critic = None
-        assert not (
-            self.shared_lstm and self.enable_critic_lstm
-        ), "You must choose between shared LSTM, seperate or no LSTM for the critic."
+        assert not (self.shared_lstm and self.enable_critic_lstm), "You must choose between shared LSTM, seperate or no LSTM for the critic."
 
-        assert not (
-            self.shared_lstm and not self.share_features_extractor
-        ), "If the features extractor is not shared, the LSTM cannot be shared."
+        assert not (self.shared_lstm and not self.share_features_extractor), "If the features extractor is not shared, the LSTM cannot be shared."
 
         # No LSTM for the critic, we still need to convert
         # output of features extractor to the correct size
@@ -311,9 +315,7 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         latent_vf = self.mlp_extractor.forward_critic(latent_vf)
         return self.value_net(latent_vf)
 
-    def evaluate_actions(
-        self, obs: th.Tensor, actions: th.Tensor, lstm_states: RNNStates, episode_starts: th.Tensor
-    ) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def evaluate_actions(self, obs: th.Tensor, actions: th.Tensor, lstm_states: RNNStates, episode_starts: th.Tensor) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
         """
         Evaluate actions according to the current policy,
         given the observations.
@@ -407,13 +409,9 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
 
         with th.no_grad():
             # Convert to PyTorch tensors
-            states = th.tensor(state[0], dtype=th.float32, device=self.device), th.tensor(
-                state[1], dtype=th.float32, device=self.device
-            )
+            states = th.tensor(state[0], dtype=th.float32, device=self.device), th.tensor(state[1], dtype=th.float32, device=self.device)
             episode_starts = th.tensor(episode_start, dtype=th.float32, device=self.device)
-            actions, states = self._predict(
-                observation, lstm_states=states, episode_starts=episode_starts, deterministic=deterministic
-            )
+            actions, states = self._predict(observation, lstm_states=states, episode_starts=episode_starts, deterministic=deterministic)
             states = (states[0].cpu().numpy(), states[1].cpu().numpy())
 
         # Convert to numpy
@@ -579,6 +577,10 @@ class RecurrentMultiInputActorCriticPolicy(RecurrentActorCriticPolicy):
         squash_output: bool = False,
         features_extractor_class: type[BaseFeaturesExtractor] = CombinedExtractor,
         features_extractor_kwargs: dict[str, Any] | None = None,
+        critic_features_extractor_class: type[BaseFeaturesExtractor] = FlattenExtractor,
+        critic_features_extractor_kwargs: dict[str, Any] | None = None,
+        actor_features_extractor_class: type[BaseFeaturesExtractor] = FlattenExtractor,
+        actor_features_extractor_kwargs: dict[str, Any] | None = None,
         share_features_extractor: bool = True,
         normalize_images: bool = True,
         optimizer_class: type[th.optim.Optimizer] = th.optim.Adam,
@@ -603,6 +605,10 @@ class RecurrentMultiInputActorCriticPolicy(RecurrentActorCriticPolicy):
             squash_output,
             features_extractor_class,
             features_extractor_kwargs,
+            critic_features_extractor_class,
+            critic_features_extractor_kwargs,
+            actor_features_extractor_class,
+            actor_features_extractor_kwargs,
             share_features_extractor,
             normalize_images,
             optimizer_class,
