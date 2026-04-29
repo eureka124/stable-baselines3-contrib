@@ -4,8 +4,10 @@
 *.py~
 *.bak
 .pytest_cache
+.mypy_cache
 .DS_Store
 .idea
+.vscode
 .coverage
 .coverage.*
 __pycache__/
@@ -13,7 +15,6 @@ _build/
 *.npz
 *.pth
 .pytype/
-.mypy_cache
 git_rewrite_commit_history.sh
 
 # Setuptools distribution and build folders.

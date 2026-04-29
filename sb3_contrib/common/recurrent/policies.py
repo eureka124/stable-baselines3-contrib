@@ -14,8 +14,12 @@ from stable_baselines3.common.torch_layers import (
 )
 from stable_baselines3.common.type_aliases import Schedule
 from torch import nn
-
+from sb3_contrib.common.recurrent.gru_sru import GRU_SRU
+from sb3_contrib.common.recurrent.lstm_sru_gate import LSTM_SRU_Gate
+from sb3_contrib.common.recurrent.lstm_sru import LSTM_SRU
 from sb3_contrib.common.recurrent.type_aliases import RNNStates
+
+LSTM_TYPE = LSTM_SRU
 
 
 class RecurrentActorCriticPolicy(ActorCriticPolicy):
@@ -109,7 +113,7 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         self.lstm_kwargs = lstm_kwargs or {}
         self.shared_lstm = shared_lstm
         self.enable_critic_lstm = enable_critic_lstm
-        self.lstm_actor = nn.LSTM(
+        self.lstm_actor = LSTM_TYPE(
             self.features_dim,
             lstm_hidden_size,
             num_layers=n_lstm_layers,
@@ -136,7 +140,7 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
 
         # Use a separate LSTM for the critic
         if self.enable_critic_lstm:
-            self.lstm_critic = nn.LSTM(
+            self.lstm_critic = LSTM_TYPE(
                 self.features_dim,
                 lstm_hidden_size,
                 num_layers=n_lstm_layers,
@@ -163,7 +167,7 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         features: th.Tensor,
         lstm_states: tuple[th.Tensor, th.Tensor],
         episode_starts: th.Tensor,
-        lstm: nn.LSTM,
+        lstm: LSTM_TYPE,
     ) -> tuple[th.Tensor, th.Tensor]:
         """
         Do a forward pass in the LSTM network.
